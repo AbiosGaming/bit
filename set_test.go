@@ -1,6 +1,8 @@
 package bit
 
 import (
+	"bytes"
+	"math"
 	"reflect"
 	"strconv"
 	"testing"
@@ -629,4 +631,78 @@ func TestNextPow2(t *testing.T) {
 			t.Errorf("nextPow2(%#x) = %#x; want %#x", n, p, x.p)
 		}
 	}
+}
+
+func TestBytes(t *testing.T) {
+	t.Run("no data", func(t *testing.T) {
+		if b := new(Set).Bytes(); b != nil {
+			t.Errorf("new(Set).Bytes() = %v; want nil", b)
+		}
+	})
+	t.Run("has data", func(t *testing.T) {
+		s := new(Set).AddRange(0, 128)
+		b := s.Bytes()
+		if !bytes.Equal(b, []byte{255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255}) {
+			t.Errorf("new(Set).AddRange(0, 128).Bytes() = %v; want [255, ..., 255]", b)
+		}
+	})
+	t.Run("only one underlying uint64", func(t *testing.T) {
+		s := new(Set).AddRange(0, 51)
+		b := s.Bytes()
+		if !bytes.Equal(b, []byte{0, 7, 255, 255, 255, 255, 255, 255}) {
+			t.Errorf("new(Set).AddRange(0, 51).Bytes() = %v; want [0, 7, 255, 255, 255, 255, 255, 255]", b)
+		}
+	})
+	t.Run("more than one underlying uint64", func(t *testing.T) {
+		s := new(Set).AddRange(0, 113)
+		b := s.Bytes()
+		if !bytes.Equal(b, []byte{255, 255, 255, 255, 255, 255, 255, 255, 0, 1, 255, 255, 255, 255, 255, 255}) {
+			t.Errorf("new(Set).AddRange(0, 51).Bytes() = %v; want [255, 255, 255, 255, 255, 255, 255, 255, 0, 1, 255, 255, 255, 255, 255, 255]", b)
+		}
+	})
+}
+
+func TestParse(t *testing.T) {
+	t.Run("no data", func(t *testing.T) {
+		s := Parse([]byte{})
+		if s.data != nil {
+			t.Errorf("Parse([]byte{}).data = %v; want nil", s.data)
+		}
+	})
+	t.Run("has data", func(t *testing.T) {
+		want := []uint64{math.MaxUint64, math.MaxUint64}
+		have := Parse([]byte{255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255})
+		if len(want) != len(have.data) {
+			t.Errorf("len(Parse(...)) = %v; want %v", len(have.data), len(want))
+		}
+		for i := 0; i < len(want); i++ {
+			if want[i] != have.data[i] {
+				t.Errorf("have.data[%v] = %v; want %v", i, have.data[i], want[i])
+			}
+		}
+	})
+	t.Run("only one underlying uint64", func(t *testing.T) {
+		want := []uint64{2251799813685247}
+		have := Parse([]byte{0, 7, 255, 255, 255, 255, 255, 255})
+		if len(want) != len(have.data) {
+			t.Errorf("len(Parse(...)) = %v; want %v", len(have.data), len(want))
+		}
+		for i := 0; i < len(want); i++ {
+			if want[i] != have.data[i] {
+				t.Errorf("have.data[%v] = %v; want %v", i, have.data[i], want[i])
+			}
+		}
+	})
+	t.Run("more than one underlying uint64", func(t *testing.T) {
+		want := []uint64{math.MaxUint64, 562949953421311}
+		have := Parse([]byte{255, 255, 255, 255, 255, 255, 255, 255, 0, 1, 255, 255, 255, 255, 255, 255})
+		if len(want) != len(have.data) {
+			t.Errorf("len(Parse(...)) = %v; want %v", len(have.data), len(want))
+		}
+		for i := 0; i < len(want); i++ {
+			if want[i] != have.data[i] {
+				t.Errorf("have.data[%v] = %v; want %v", i, have.data[i], want[i])
+			}
+		}
+	})
 }

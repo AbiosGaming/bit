@@ -23,6 +23,7 @@
 package bit
 
 import (
+	"encoding/binary"
 	"fmt"
 	"math/bits"
 	"strings"
@@ -71,6 +72,32 @@ func New(n ...int) *Set {
 		}
 	}
 	return s
+}
+
+// Parse creates a new set from the specified byte array.
+func Parse(b []byte) *Set {
+	if len(b) == 0 {
+		return new(Set)
+	}
+	s := &Set{
+		data: make([]uint64, (len(b)+1/8)/8),
+	}
+	for i := 0; i < len(s.data); i++ {
+		s.data[i] = binary.BigEndian.Uint64(b[i*8:])
+	}
+	return s
+}
+
+// Bytes returns a byte array representation of the set.
+func (s *Set) Bytes() []byte {
+	if len(s.data) == 0 {
+		return nil
+	}
+	b := make([]byte, len(s.data)*8)
+	for i := 0; i < len(s.data); i++ {
+		binary.BigEndian.PutUint64(b[i*8:], s.data[i])
+	}
+	return b
 }
 
 // Contains tells if n is an element of the set.
