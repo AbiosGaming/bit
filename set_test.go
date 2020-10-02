@@ -639,7 +639,14 @@ func TestBytes(t *testing.T) {
 			t.Errorf("new(Set).Bytes() = %v; want nil", b)
 		}
 	})
-	t.Run("has data", func(t *testing.T) {
+	t.Run("one underlying uint64, where set length is a multiple of 8", func(t *testing.T) {
+		s := new(Set).AddRange(0, 64)
+		b := s.Bytes()
+		if !bytes.Equal(b, []byte{255, 255, 255, 255, 255, 255, 255, 255}) {
+			t.Errorf("new(Set).AddRange(0, 64).Bytes() = %v; want [255, ..., 255]", b)
+		}
+	})
+	t.Run("more than one underlying uint64, where set length is a multiple of 8", func(t *testing.T) {
 		s := new(Set).AddRange(0, 128)
 		b := s.Bytes()
 		if !bytes.Equal(b, []byte{255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255}) {
@@ -669,7 +676,19 @@ func TestParse(t *testing.T) {
 			t.Errorf("Parse([]byte{}).data = %v; want nil", s.data)
 		}
 	})
-	t.Run("has data", func(t *testing.T) {
+	t.Run("one underlying uint64, where set length is a multiple of 8", func(t *testing.T) {
+		want := []uint64{math.MaxUint64}
+		have := Parse([]byte{255, 255, 255, 255, 255, 255, 255, 255})
+		if len(want) != len(have.data) {
+			t.Errorf("len(Parse(...)) = %v; want %v", len(have.data), len(want))
+		}
+		for i := 0; i < len(want); i++ {
+			if want[i] != have.data[i] {
+				t.Errorf("have.data[%v] = %v; want %v", i, have.data[i], want[i])
+			}
+		}
+	})
+	t.Run("more than one underlying uint64, where set length is a multiple of 8", func(t *testing.T) {
 		want := []uint64{math.MaxUint64, math.MaxUint64}
 		have := Parse([]byte{255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255})
 		if len(want) != len(have.data) {
