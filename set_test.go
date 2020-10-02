@@ -639,14 +639,14 @@ func TestBytes(t *testing.T) {
 			t.Errorf("new(Set).Bytes() = %v; want nil", b)
 		}
 	})
-	t.Run("one underkying uint64, where set length is a multiple of 8", func(t *testing.T) {
+	t.Run("one underlying uint64, where set length is a multiple of 8", func(t *testing.T) {
 		s := new(Set).AddRange(0, 64)
 		b := s.Bytes()
 		if !bytes.Equal(b, []byte{255, 255, 255, 255, 255, 255, 255, 255}) {
 			t.Errorf("new(Set).AddRange(0, 64).Bytes() = %v; want [255, ..., 255]", b)
 		}
 	})
-	t.Run("more than one underkying uint64, where set length is a multiple of 8", func(t *testing.T) {
+	t.Run("more than one underlying uint64, where set length is a multiple of 8", func(t *testing.T) {
 		s := new(Set).AddRange(0, 128)
 		b := s.Bytes()
 		if !bytes.Equal(b, []byte{255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255}) {
