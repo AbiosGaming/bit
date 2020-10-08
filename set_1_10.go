@@ -89,7 +89,7 @@ func Parse(b []byte) *Set {
 }
 
 // Bytes returns a byte array representation of the set.
-func (s *Set) Bytes() []byte {
+func (s Set) Bytes() []byte {
 	if len(s.data) == 0 {
 		return nil
 	}
